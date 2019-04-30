@@ -1,0 +1,163 @@
+<?php
+session_start();
+//define variables and set to empty values
+$usernameErr = $passErr = $emailErr = $streetErr = $birthdayErr = $cityErr = $stateErr = $wageErr = $zipErr = "";
+$username = $pass = $birthday = $wage = $city = $email = $state = $zip = $street = $salary = "";
+
+function test_input($data) {
+	$data = trim($data);
+	$data = stripslashes($data);
+	$data = htmlspecialchars($data);
+	return $data;
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+	if (empty($_POST["username"])) {
+		$usernameErr = "Username is required.";
+	} else {
+		$username = test_input($_POST["username"]);
+		$pattern = "/^[a-zA-Z ]*$/";
+		// check if name only contains letters and whitespace.
+		if (!preg_match($pattern, $username))
+			$nameErr = "Only letters and white space allowed";
+		else
+			$_SESSION["username"] = $username;
+	}
+	
+	if (empty($_POST["pass"])) {
+		$passErr = "Password is required.";
+	} else {
+		$pass = test_input($_POST["pass"]);
+		$pattern = "/^(?=[^\d_].*?\d)\w(\w|[!@#$%]){5,20}/";
+		// check if name only contains letters and whitespace.
+		if (!preg_match($pattern, $pass))
+			$nameErr = "Passwords to a length of 6 to 20 alphanumeric characters and select special characters. The password also can not start with a digit, underscore or special character and must contain at least one digit.";
+		else
+			$_SESSION["pass"] = $pass;
+	}
+
+	if (!isset($_POST["email"])) {
+		$emailErr = "Email is required.";
+	} else {
+		$email = test_input($_POST["email"]);
+		// check if e-mail address is well-formed
+		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			$emailErr = "Invalid email format.";
+		} else
+			$_SESSION["email"] = $email;
+	}
+
+	if (empty($_POST["birthday"])) {
+		$birthdayErr = "Mobile Phone Number is required.";
+	} else {
+		$birthday = $_POST["birthday"];
+		if( !preg_match("/((?:0[1-9])|(?:1[0-2]))\/((?:0[0-9])|(?:[1-2][0-9])|(?:3[0-1]))\/(\d{4})/", $birthday, $output_array) ) {
+			$birthdayErr = $birthday . " is an invalid birthday (preg match error).";
+		} else {
+			$_SESSION["birthday"] = test_input($output_array[3] . "-" . $output_array[1] . "-" . $output_array[2]);
+		}
+	}
+
+	if (empty($_POST["gender"])) {
+		$genderErr = "Gender is required.";
+	} else {
+		$gender = test_input($_POST["gender"]);
+	}
+
+		
+
+	if ($usernameErr . $passErr . $emailErr . $genderErr . $birthdayErr == "")
+		header('Location: php/insert.php');
+}
+?>
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Ragnarok Control Panel" />
+<meta name="keywords" content="Ragnarok, Online, Skorm, My, Own, Control, Panel" />
+<html>
+<head>
+<title>Account Creation</title>
+<link rel="stylesheet" href="css/myscreen.css" media="all"/>
+<link rel="stylesheet" href="css/myprint.css" media="print"/>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+<span class="floatmenu" onclick="openNav()">&#9776; open menu</span>
+</head>
+<body>
+<div class="header">
+<header>
+	<h1>Control Panel</h1>
+</header>
+</div>
+<form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) ?>"> 
+<div class="row">
+<nav id="mySidenav" class="sidenav">
+		<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+		<ul>
+			<li onclick="location.href='index.html'" >Home<i class="fas fa-home"></i></li>
+			<li onclick='location.href="who.html"'>Who's Online<i class="fas fa-globe-americas"></i></li>
+			<li onclick='location.href="item.html"'>Item Database<i class="fas fa-database"></i></li>
+			<li onclick='location.href="mob.html"'>Mob Database<i class="fas fa-database"></i></li>
+			<?php
+				if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] == true) {
+					echo "<li onclick='location.href=\"create.html\"' >Create Character<i class=\"fas fa-user-plus\"></i></li>";
+					echo "<li onclick='location.href=\"deletechar.html\"' >Delete Character<i class=\"fas fa-user-times\"></i></li>";
+					echo "<li onclick='location.href=\"changename.html\"' >Name Changer<i class=\"fas fa-user-tag\"></i></li>";
+					echo "<li onclick='location.href=\"logout.html\"' >Logout<i class=\"fas fa-sign-out-alt\"></i></li>";
+				} else {
+					echo "<li onclick=\"location.href='register.html'\" >Register <i class=\"fas fa-server\"></i></li>";
+					echo "<li onclick='location.href=\"loginmenu.html\"' >Login <i class=\"fas fa-sign-in-alt\"></i></li>";
+				}
+			?>
+		</ul>
+	</nav>
+	<script>
+	function openNav(){
+			document.getElementById("mySidenav").style.width = "250px";
+	}
+	function closeNav(){
+			document.getElementById("mySidenav").style.width = "0";
+	}
+	</script>
+<div class="col-9">
+<h2>Account Creation</h2>
+<fieldset id="addressBox" class="center">
+<p style="text-align:left;margin-top:1px;margin-left:10px;"><span class="error">* required fields</span></p>
+
+<div>
+
+<p><label for="username" id="labelFormat"><span class="error">*</span>Username:</label>
+<input class="formEntry" id="username" name="username" size="30" value="<?php echo $username; ?>">
+<br><span class="error"><?php echo $usernameErr; ?></span><br></p>
+
+<p><label for="pass" id="labelFormat"><span class="error">*</span>Password:</label>
+<input type=password class="formEntry" id="pass" name="pass" size="30" value="<?php echo $pass; ?>">
+<br><span class="error"><?php echo $passErr; ?></span><br></p>
+
+<p><label for="birthday" id="labelFormat"><span class="error">*</span>Birthdate:</label>
+<input class="formEntry" id="birthday" name="birthday" size="30" value="<?php echo $birthday; ?>"><br> DD/MM/YYYY
+<br><span class="error"><?php echo $birthdayErr; ?></span><br></p>
+
+<p><label for="email" id="labelFormat"><span class="error">*</span>Email:</label>
+<input class="formEntry" id="email" name="email" size="30" value="<?php echo $email; ?>">
+<br><span class="error"><?php echo $emailErr; ?></span><br></p>
+
+<div style="flex-inline;">
+<p><label for="gender" id="labelFormat"><span class="error">*</span>Gender:</label><br>
+<label for="female">&nbsp;&nbsp;Female:</label>
+<input name="gender" <?php if (isset($gender) && $gender=="female") echo "checked"; ?> value="female" type="radio">
+<label for="male">&nbsp;&nbsp;Male:</label>
+<input name="gender" <?php if (isset($gender) && $gender=="male") echo "checked"; ?> value="male" type="radio">&nbsp; 
+<br><span class="error"><?php echo $genderErr; ?></span></p>
+</div><br>
+
+<p></p>
+<p style="flex-inline;"><input class="inputButton" name="submit" id="submit" style="clear:both;width: 190px;" type="submit">
+<input class="inputButton" name="reset" id="reset" style="clear:both;width: 190px; margin-left:10px;" type="reset"><br>
+</p>
+</div>
+</fieldset>
+</div>
+</div>
+</form>
+</body>
+</html>

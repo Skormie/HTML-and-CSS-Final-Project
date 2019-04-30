@@ -1,0 +1,138 @@
+<?php
+session_start();
+//define variables and set to empty values
+$nameErr = $passwordErr = "";
+
+function test_input($data) {
+	$data = trim($data);
+	$data = stripslashes($data);
+	$data = htmlspecialchars($data);
+	return $data;
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+	if (empty($_POST["username"])) {
+		$nameErr = "Name is required.";
+	} else {
+		$username = test_input($_POST["username"]);
+		$pattern = "/^[a-zA-Z ]*$/";
+		// check if name only contains letters and whitespace.
+		if (!preg_match($pattern, $username)) {
+			$nameErr = "Only letters and white space allowed";
+		}
+	}
+
+	if (empty($_POST["password"])) {
+		$passwordErr = "Password is required.";
+	} else {
+		$password = test_input($_POST["password"]);
+		$pattern = "/^(?=[^\d_].*?\d)\w(\w|[!@#$%]){5,20}/";
+		if (!preg_match($pattern, $password)) {
+			$passwordErr = "Passwords to a length of 6 to 20 alphanumeric characters and select special characters. The password also can not start with a digit, underscore or special character and must contain at least one digit.";
+		}
+	}
+
+	if ($nameErr == "" && $passwordErr == "") {
+		$display_block="";
+		//connect to server and select database
+		$mysqli = mysqli_connect("localhost", "user_sql5", "password1", "lovelyvh_cp_db") or die(mysql_error());
+		
+		//use mysqli_real_escape_string to clean the input
+		$safe_username = mysqli_real_escape_string($mysqli, $_POST['username']);
+		$safe_password = mysqli_real_escape_string($mysqli, $_POST['password']);
+		
+		//create and issue the query
+		$sql = "SELECT `user_pass` FROM `login` WHERE `userid` = '".$safe_username."';";
+		
+		$result = mysqli_query($mysqli, $sql) or die(mysqli_error($mysqli));
+
+		$row = mysqli_fetch_array($result);
+
+		//get the number of rows in the result set; should be 1 if a match
+		if (mysqli_num_rows($result) > 0) {
+			if(password_verify($safe_password, $row['user_pass'])) {
+				$_SESSION['loggedin'] = true;
+				$_SESSION['username'] = $safe_username;
+				header("Location:./index.html");
+			} else {
+				//redirect back to login form if not authorized
+				$display_block = "<p style='text-align:center;color:red;font-size:2em;'>Please contact IT, your username and password are not valid</p>";
+				$display_block .= "<p style='text-align:center;font-size:2em;'><a href='loginmenu.html'> Return to login</a></p>";
+				echo $display_block;
+			}
+		} else {
+			$display_block = "<p style='text-align:center;color:red;font-size:2em;'>Something went wrong!</p>";
+			$display_block .= "<p style='text-align:center;font-size:2em;'><a href='loginmenu.html'> Return to login</a></p>";
+			echo $display_block;
+		}
+		
+		//close connection to MySQL
+		mysqli_close($mysqli);
+	}
+}
+?>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Ragnarok Control Panel" />
+<meta name="keywords" content="Ragnarok, Online, Skorm, My, Own, Control, Panel" />
+<html>
+<head>
+<title>User Login Form</title>
+<link rel="stylesheet" href="css/myscreen.css" media="all"/>
+<link rel="stylesheet" href="css/myprint.css" media="print"/>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+<span class="floatmenu" onclick="openNav()">&#9776; open menu</span>
+</head>
+<body >
+<div class="header">
+<header>
+	<h1>Control Panel</h1>
+</header>
+</div>
+<box>
+<form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+
+<div class="row">
+<nav id="mySidenav" class="sidenav">
+		<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+		<ul>
+			<li onclick="location.href='index.html'" >Home<i class="fas fa-home"></i></li>
+			<li onclick='location.href="who.html"'>Who's Online<i class="fas fa-globe-americas"></i></li>
+			<li onclick='location.href="item.html"'>Item Database<i class="fas fa-database"></i></li>
+			<li onclick='location.href="mob.html"'>Mob Database<i class="fas fa-database"></i></li>
+			<?php
+				if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] == true) {
+					echo "<li onclick='location.href=\"create.html\"' >Create Character<i class=\"fas fa-user-plus\"></i></li>";
+					echo "<li onclick='location.href=\"deletechar.html\"' >Delete Character<i class=\"fas fa-user-times\"></i></li>";
+					echo "<li onclick='location.href=\"changename.html\"' >Name Changer<i class=\"fas fa-user-tag\"></i></li>";
+					echo "<li onclick='location.href=\"logout.html\"' >Logout<i class=\"fas fa-sign-out-alt\"></i></li>";
+				} else {
+					echo "<li onclick=\"location.href='register.html'\" >Register <i class=\"fas fa-server\"></i></li>";
+					echo "<li onclick='location.href=\"loginmenu.html\"' >Login <i class=\"fas fa-sign-in-alt\"></i></li>";
+				}
+			?>
+		</ul>
+	</nav>
+	<script>
+	function openNav(){
+			document.getElementById("mySidenav").style.width = "250px";
+	}
+	function closeNav(){
+			document.getElementById("mySidenav").style.width = "0";
+	}
+	</script>
+<div class="col-9">
+	<h2>Login Form</h2>
+	<p><label for="username" id="labelFormat"><span class="error">*</span>Username:</label>
+	<input type="text" class="formEntry" id="username" name="username" autofocus size="30" value="<?php echo $username; ?>">
+	<span class="error"><?php echo $nameErr; ?></span><br></p>
+	<p><label for="password" id="labelFormat"><span class="error">*</span>Password:</label>
+	<input type=password class="formEntry" id="password" name="password" autofocus size="30" value="<?php echo $password; ?>">
+	<span class="error"><?php echo $passwordErr; ?></span><br></p>
+	<button type="submit" name="submit" id="login" value="submit">Login</button>
+</div>
+</div>
+
+</form>
+</box>
+</body>
+</html>

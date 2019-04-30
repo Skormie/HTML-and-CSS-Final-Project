@@ -1,0 +1,14 @@
+<?php
+session_start();
+unset($_SESSION["username"]);
+unset($_SESSION['loggedin']);
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="refresh" content="3;url=./index.html" />
+    </head>
+    <body>
+        <h1>You've been logged out redirecting in 3 seconds...</h1>
+    </body>
+</html>

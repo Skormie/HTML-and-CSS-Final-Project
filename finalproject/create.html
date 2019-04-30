@@ -1,0 +1,165 @@
+<?php
+include 'php/connect.php';
+session_start();
+doDB();
+
+if (!isset($_SESSION['loggedin'])) {
+    header("Location:loginmenu.html");
+}
+?>
+
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Ragnarok Control Panel" />
+<meta name="keywords" content="Ragnarok, Online, Skorm, My, Own, Control, Panel" />
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<meta content="utf-8" http-equiv="encoding">
+<head>
+<title>Control Panel</title>
+<link rel="stylesheet" href="css/myscreen.css" media="all"/>
+<link rel="stylesheet" href="css/myprint.css" media="print"/>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+<span class="floatmenu" onclick="openNav()">&#9776; open menu</span>
+<script>
+var hair = 1;
+var hairColor = 1;
+var direction = 0;
+var gender = "M";
+function showPhp(str) {
+
+    switch(str) {
+        case 'hairPlus':
+            hair++;
+            break;
+        case 'hairMinus':
+            hair--;
+            break;
+        case 'hairColorPlus':
+            hairColor++;
+            break;
+        case 'hairColorMinus':
+            hairColor--;
+            break;
+        case 'directionMinus':
+            direction++;
+            break;
+        case 'directionPlus':
+            direction--;
+            if(direction == -1)
+                direction = 7;
+            break;
+        case 'gender':
+            gender = gender == "M" ? "F" : "M";
+            break;
+        default:
+            break;
+    }
+
+    hair = hair <= 0 ? 1 : hair >= 29 ? 29 : hair;
+
+    hairColor = hairColor <= 0 ? 1 : hairColor >= 9 ? 9 : hairColor;
+
+    direction = Math.abs(direction % 8);
+    
+    var surl = "./ROChargenPHP/generate/body="+gender+"-0-0/hair="+hair+"-"+hairColor+"-0/hats=0-0-0/equip=0-0-0/option=0/actdir="+direction+"-0-0";
+    console.log(surl);
+    if (surl == "") {
+        document.getElementById("loadPhp").innerHTML = "";
+        return;
+    } else {
+        if (window.XMLHttpRequest) {
+            // code for IE7+, Firefox, Chrome, Opera, Safari
+            xmlhttp = new XMLHttpRequest();
+        } else {
+            // code for IE6, IE5
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("loadPhp").innerHTML = this.responseText;
+            }
+        };
+        xmlhttp.open("GET",surl,true);
+        xmlhttp.send();
+    }
+}
+
+function Submit()
+{
+    var PageToSendTo = "php/character.php?";
+    var geturl = "hair="+ hair +"&hairColor="+ hairColor +"&gender="+ gender +"&charname="+escapeHtml(document.getElementById("charname").value)+"&username="+escapeHtml(document.getElementById("hidden").value);
+    var UrlToSend = PageToSendTo + geturl;
+
+    window.location.href = UrlToSend;
+}
+
+function escapeHtml(text) {
+  var map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+
+  return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+</script>
+</head>
+<body>
+<div class="header">
+<header>
+  <h1>Control Panel</h1>
+</header>
+</div>
+
+<div class="row">
+<nav id="mySidenav" class="sidenav">
+		<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+		<ul>
+			<li onclick="location.href='index.html'" >Home<i class="fas fa-home"></i></li>
+			<li onclick='location.href="who.html"'>Who's Online<i class="fas fa-globe-americas"></i></li>
+			<li onclick='location.href="item.html"'>Item Database<i class="fas fa-database"></i></li>
+			<li onclick='location.href="mob.html"'>Mob Database<i class="fas fa-database"></i></li>
+			<?php
+				if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] == true) {
+					echo "<li onclick='location.href=\"create.html\"' >Create Character<i class=\"fas fa-user-plus\"></i></li>";
+					echo "<li onclick='location.href=\"deletechar.html\"' >Delete Character<i class=\"fas fa-user-times\"></i></li>";
+					echo "<li onclick='location.href=\"changename.html\"' >Name Changer<i class=\"fas fa-user-tag\"></i></li>";
+					echo "<li onclick='location.href=\"logout.html\"' >Logout<i class=\"fas fa-sign-out-alt\"></i></li>";
+				} else {
+					echo "<li onclick=\"location.href='register.html'\" >Register <i class=\"fas fa-server\"></i></li>";
+					echo "<li onclick='location.href=\"loginmenu.html\"' >Login <i class=\"fas fa-sign-in-alt\"></i></li>";
+				}
+			?>
+		</ul>
+	</nav>
+	<script>
+	function openNav(){
+			document.getElementById("mySidenav").style.width = "250px";
+	}
+	function closeNav(){
+			document.getElementById("mySidenav").style.width = "0";
+	}
+	</script>
+<div class="col-9">
+  <h2>Character Creation:</h2>
+  <form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+<body onload="showPhp('');">
+<h1>Use the arrows to create your character.</h1>
+<h3><div id="loadPhp"><b></b></div><h3>
+<div class='block'>
+Character Name: <input type="text" class="formEntry" id="charname" name="charname" autofocus size="30" >
+<p><button type="button" onclick="showPhp('hairMinus')" ><</button> hair <button type="button" onclick="showPhp('hairPlus')" >></button></p>
+<p><button type="button" onclick="showPhp('hairColorMinus')" ><</button> color <button type="button" onclick="showPhp('hairColorPlus')" >></button></p>
+<p><button type="button" onclick="showPhp('directionMinus')" ><</button> direction <button type="button" onclick="showPhp('directionPlus')" >></button></p>
+<p><button type="button" onclick="showPhp('gender')" >gender</button></p>
+<br>
+<p><button type="button" onclick="Submit()" >submit</button></p>
+<input type="hidden" name="hidden" id="hidden" value="<?php echo $_SESSION['username']; ?>">
+</div>
+</div>
+
+</form>
+</div>
+</body>

@@ -1,0 +1,78 @@
+<?php
+include 'php/connect.php';
+require 'php/tableme.php';
+session_start();
+doDB();
+
+$sql = "SELECT * FROM `mob_db` LIMIT 50";
+
+$result = mysqli_query($mysqli, $sql) or die(mysqli_error($mysqli));
+
+$display = tableme($result);
+
+mysqli_close($mysqli);
+?>
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Ragnarok Control Panel" />
+<meta name="keywords" content="Ragnarok, Online, Skorm, My, Own, Control, Panel" />
+<html>
+<head>
+<link rel="stylesheet" href="css/myscreen.css" media="all"/>
+<link rel="stylesheet" href="css/myprint.css" media="print"/>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+<span class="floatmenu" onclick="openNav()">&#9776; open menu</span>
+<title>Mob DB</title>
+</head>
+<body>
+<div class="header">
+<header>
+	<h1>Control Panel</h1>
+</header>
+</div>
+<form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) ?>"> 
+<div class="row">
+<nav id="mySidenav" class="sidenav">
+		<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+		<ul>
+			<li onclick="location.href='index.html'" >Home</li>
+			<li onclick='location.href="who.html"'>Who's Online</li>
+			<li onclick='location.href="item.html"'>Item Database</li>
+			<li onclick='location.href="mob.html"'>Mob Database</li>
+			<?php
+				if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] == true) {
+					echo "<li onclick='location.href=\"create.html\"' >Create Character</li>";
+					echo "<li onclick='location.href=\"deletechar.html\"' >Delete Character</li>";
+					echo "<li onclick='location.href=\"changename.html\"' >Name Changer</li>";
+					echo "<li onclick='location.href=\"logout.html\"' >Logout</li>";
+				} else {
+					echo "<li onclick=\"location.href='register.html'\" >Register</li>";
+					echo "<li onclick='location.href=\"loginmenu.html\"' >Login</li>";
+				}
+			?>
+			<li onclick='location.href="php/jsonCreateMobDB.php"'>JSON Backup Database</li>
+			<li onclick='location.href="php/xmlCreateMobDB.php"'>XML Backup Database</li>
+		</ul>
+	</nav>
+	<script>
+	function openNav(){
+			document.getElementById("mySidenav").style.width = "250px";
+	}
+	function closeNav(){
+			document.getElementById("mySidenav").style.width = "0";
+	}
+	</script>
+<div class="col-9">
+<h2>Mob DB</h2>
+<p></p>
+
+<div style="flex-inline;">
+<?php echo $display; ?>
+</div><br>
+
+</p>
+</div>
+</div>
+</form>
+</body>
+</html>

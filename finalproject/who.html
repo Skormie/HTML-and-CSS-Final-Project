@@ -1,0 +1,102 @@
+<?php
+include 'php/connect.php';
+session_start();
+doDB();
+
+$sql = "SELECT `name`, `base_level`, `last_map`, `last_x`, `last_y` FROM `char` WHERE `online`=1 LIMIT 100";
+
+$result = mysqli_query($mysqli, $sql) or die(mysqli_error($mysqli));
+
+$display = tableme2($result);
+
+$display = $display == "" ? "<h2>No players are online!</h2>" : $display;
+
+mysqli_close($mysqli);
+
+function tableme2($result){
+    $header='';
+    $rows='';
+
+    while ($row = mysqli_fetch_array($result, MYSQLI_ASSOC)) { 
+        if($header==''){
+            $header.='<tr>'; 
+            $rows.='<tr>'; 
+            foreach($row as $key => $value){ 
+                $header.='<th>'.$key.'</th>'; 
+                $rows.='<td>'.$value.'</td>'; 
+            } 
+            $header.='</tr>'; 
+            $rows.='</tr>'; 
+        }else{
+            $rows.='<tr>'; 
+            foreach($row as $value){ 
+                $rows .= "<td>".$value."</td>"; 
+            } 
+            $rows.='</tr>'; 
+        }
+    } 
+    return '<table>'.$header.$rows.'</table>';
+}
+?>
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Ragnarok Control Panel" />
+<meta name="keywords" content="Ragnarok, Online, Skorm, My, Own, Control, Panel" />
+<html>
+<head>
+<title>Mob DB</title>
+<link rel="stylesheet" href="css/myscreen.css" media="all"/>
+<link rel="stylesheet" href="css/myprint.css" media="print"/>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+<span class="floatmenu" onclick="openNav()">&#9776; open menu</span>
+</head>
+<body>
+<div class="header">
+<header>
+  <h1>Control Panel</h1>
+</header>
+</div>
+<form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) ?>"> 
+<div class="row">
+<nav id="mySidenav" class="sidenav">
+		<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+		<ul>
+			<li onclick="location.href='index.html'" >Home<i class="fas fa-home"></i></li>
+			<li onclick='location.href="who.html"'>Who's Online<i class="fas fa-globe-americas"></i></li>
+			<li onclick='location.href="item.html"'>Item Database<i class="fas fa-database"></i></li>
+			<li onclick='location.href="mob.html"'>Mob Database<i class="fas fa-database"></i></li>
+			<?php
+				if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] == true) {
+					echo "<li onclick='location.href=\"create.html\"' >Create Character<i class=\"fas fa-user-plus\"></i></li>";
+					echo "<li onclick='location.href=\"deletechar.html\"' >Delete Character<i class=\"fas fa-user-times\"></i></li>";
+					echo "<li onclick='location.href=\"changename.html\"' >Name Changer<i class=\"fas fa-user-tag\"></i></li>";
+					echo "<li onclick='location.href=\"logout.html\"' >Logout<i class=\"fas fa-sign-out-alt\"></i></li>";
+				} else {
+					echo "<li onclick=\"location.href='register.html'\" >Register <i class=\"fas fa-server\"></i></li>";
+					echo "<li onclick='location.href=\"loginmenu.html\"' >Login <i class=\"fas fa-sign-in-alt\"></i></li>";
+				}
+			?>
+		</ul>
+	</nav>
+	<script>
+	function openNav(){
+			document.getElementById("mySidenav").style.width = "250px";
+	}
+	function closeNav(){
+			document.getElementById("mySidenav").style.width = "0";
+	}
+	</script>
+<div class="col-9">
+<h2>Online Players:</h2>
+<p></p>
+
+<div style="flex-inline;">
+<div class="container"><?php echo $display; ?></div>
+</div><br>
+
+</p>
+</div>
+</div>
+</form>
+</body>
+</html>
