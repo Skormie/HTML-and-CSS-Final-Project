@@ -23,14 +23,14 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] == true) {
 <title>Control Panel</title>
 <link rel="stylesheet" href="css/myscreen.css" media="all"/>
 <link rel="stylesheet" type="text/css" href="css/myprint.css" media="print"/>
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
-<link href="https://fonts.googleapis.com/css?family=Karla" rel="stylesheet">
-<span class="floatmenu" onclick="openNav()">&#9776; open menu</span>
+<link class="no-print" rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+<link class="no-print" href="https://fonts.googleapis.com/css?family=Karla" rel="stylesheet">
+<span class="floatmenu no-print" onclick="openNav()">&#9776; open menu</span>
 </head>
 <body>
 <div class="header">
 <header>
-	<p class="print" onclick="window.print();">Print</p>
+	<p class="print no-print" onclick="window.print();">Print</p>
 	<h1>UserCP</h1><?php echo $display_block; ?>
 </header>
 </div>
